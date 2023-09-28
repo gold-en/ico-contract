@@ -13,7 +13,11 @@ async function main() {
 
   console.log(`CryptoX deployed to ${CryptoX.target}`);
 
+  // const CryptoX_Address = "0xfac65fd38b318c3f8b8682ad72c2e8fcd7c5000e"; //the tokens address when I first deployed it
+  const depositAddress = "0xc213e4af5c8e03856871d771b8f7ed8b5a72380e"; // this address will get the ETH sent to the register function
+
   const CryptoX_ICO = await hre.ethers.deployContract("CryptoX_ICO", [
+    depositAddress,
     CryptoX.target,
   ]);
 

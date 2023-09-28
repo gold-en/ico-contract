@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract CryptoX_ICO{
 
     address payable public deposit;
@@ -8,7 +9,7 @@ contract CryptoX_ICO{
     uint public hardCap = 300 ether;
     uint public raisedAmount; 
     uint public ico_start_time = block.timestamp;
-    uint public ico_end_time = block.timestamp + 86400; //one week
+    uint public ico_end_time = block.timestamp + 86400; //24 hours in seconds
     
     uint public maxInvestment = 5 ether;
     uint public minInvestment = 0.1 ether;
@@ -16,7 +17,7 @@ contract CryptoX_ICO{
     enum State { beforeStart, running, afterEnd, halted} // ICO states 
     State public icoState;
 
-    address public icoAdmin;
+    address public admin; // the address holding our ERC20 token
 
     mapping(address => bool) public registered_addresses;
     mapping(address => bool) public claimed_addresses;
@@ -26,13 +27,13 @@ contract CryptoX_ICO{
         token = IERC20(_CryptoXAddress);
 
         deposit = _deposit; 
-        icoAdmin = msg.sender;
+        admin = msg.sender;
         icoState = State.beforeStart;
     }
 
     
     modifier onlyAdmin(){
-        require(msg.sender == icoAdmin);
+        require(msg.sender == admin);
         
         _;
     }
@@ -78,15 +79,11 @@ contract CryptoX_ICO{
 
         registered_addresses[msg.sender] = true;
         
-        uint tokens = msg.value / tokenPrice;
+        uint256 tokens = msg.value / tokenPrice;
 
-        // adding tokens to the inverstor's balance from the tokenAdmin's balance
-        //WHERE MY PROBLEM STARTED--TRYING TO CALL THE FUNCTIONS FROM THE token(CRYPTOX) CONTRACT
-        token.balances[msg.sender] += tokens;
-        token.balances[token.admin] -= tokens; 
-        token.transfer(msg.sender, tokens);
+        token.transferFrom(admin, msg.sender, tokens);
 
-        deposit.transfer(msg.value); // transfering the value sent to the ICO to the deposit address
+        deposit.transfer(msg.value); // transfering the ETH sent to the ICO to the deposit address
         
         
         return true;
@@ -98,6 +95,7 @@ contract CryptoX_ICO{
         require(registered_addresses[_address], "this address is not yet registered");
     
         claimed_addresses[_address] = true;
+        return true;
    }
    
    // this function is called automatically when someone sends ETH to the contract's address
