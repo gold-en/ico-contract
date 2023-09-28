@@ -66,10 +66,7 @@ contract CryptoX_ICO{
         }
     }
 
-
-    event Invest(address investor, uint value, uint tokens);
     
-    // function called when sending eth to the contract
     function register() payable public returns(bool){
 
         icoState = getCurrentState();
@@ -86,12 +83,11 @@ contract CryptoX_ICO{
         // adding tokens to the inverstor's balance from the tokenAdmin's balance
         //WHERE MY PROBLEM STARTED--TRYING TO CALL THE FUNCTIONS FROM THE token(CRYPTOX) CONTRACT
         token.balances[msg.sender] += tokens;
-        token.balance[token.admin] -= tokens; 
+        token.balances[token.admin] -= tokens; 
         token.transfer(msg.sender, tokens);
 
         deposit.transfer(msg.value); // transfering the value sent to the ICO to the deposit address
         
-        emit Invest(msg.sender, msg.value, tokens);
         
         return true;
     }
@@ -107,16 +103,6 @@ contract CryptoX_ICO{
    // this function is called automatically when someone sends ETH to the contract's address
    receive () payable external{
         register();
-    }
-  
-    
-    // burning unsold tokens
-    function burn() public returns(bool){
-        icoState = getCurrentState();
-        require(icoState == State.afterEnd);
-        token.balances[token.admin] = 0;
-        return true;
-        
     }
     
 }
